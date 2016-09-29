@@ -156,8 +156,8 @@ process picard {
 	file bam from bwa_bam
 
 	output:
-	file '*.mkdp.bam' into bam_mkdp_spp, bam_mkdp_ngsplotconfig, bam_mkdp_ngsplot, bam_mkdp_deepTools, bam_mkdp_macs, bam_mkdp_sicer
-	file '*.mkdp.bam.bai' into bai_mkdp_deepTools, bai_mkdp_ngsplot, bai_mkdp_macs, bai_mkdp_sicer
+	file '*.mkdp.bam' into bam_mkdp_spp, bam_mkdp_ngsplotconfig, bam_mkdp_ngsplot, bam_mkdp4macs, bam_mkdp4sicer, bam_mkdp4deeptools
+	file '*.mkdp.bam.bai' into bai_mkdp_spp, bai_mkdp_ngsplot, bai_mkdp4macs, bai_mkdp4sicer, bai_mkdp4deeptools
 	file '*.picardDupMetrics.txt' into picard_reports
 
 	script:
@@ -190,6 +190,7 @@ process phantompeakqualtools {
 
 	input:
 	file bam from bam_mkdp_spp
+	file bai from bai_mkdp_spp
 
 	output:
 	file '*.pdf'
@@ -215,8 +216,8 @@ process deeptools {
 	publishDir "${params.outdir}/deepTools", mode: params.publishMode
 
 	input:
-	file bam from bam_mkdp_deepTools.toSortedList()
-	file bai from bai_mkdp_deepTools.toSortedList()
+	file bam_files from bam_mkdp4deeptools.toSortedList()
+	file bai_files from bai_mkdp4deeptools.toSortedList()
 
 	output:
 	file 'fingerprints.pdf'
@@ -279,14 +280,16 @@ process macs {
     publishDir "${params.outdir}/macs", mode: params.publish_mode
 
     input:
-    file bam_for_macs from bam_mkdp_macs.toSortedList()
-    file bai_for_macs from bai_mkdp_macs.toSortedList()
+    file bam_files from bam_mkdp4macs.toSortedList()
+    file bam_indices from bai_mkdp4macs.toSortedList()
     set chip_sample_id, ctrl_sample_id, analysis_id from macs_in
 
     output:
     file '*.{bed,xls,r,narrowPeak,bdg}'
-    file '*.narrowPeak' into memechip_in, macs_homer_in
+    file '*.narrowPeak' into memechip_in, homer_in_macs
     file '*.pdf'
+
+    set '*.narrowPeak', '*_treat_pileup.bdg' into ceas_in_macs
 
     script:
 
@@ -300,8 +303,7 @@ process macs {
         ceas = "ceas -g /fdb/CEAS/${params.genome}.refGene -b ${analysis_id}_peaks.narrowPeak"
     } else {
         ctrl = "-c ${ctrl_sample_id}.mkdp.bam"
-        //ceas = "ceas -g /fdb/CEAS/${params.genome}.refGene -b ${analysis_id}_peaks.narrowPeak -w ${analysis_id}_control_lambda.bdg"
-	ceas = "ceas -g /fdb/CEAS/${params.genome}.refGene -b ${analysis_id}_peaks.narrowPeak"
+        ceas = "ceas -g /fdb/CEAS/${params.genome}.refGene -b ${analysis_id}_peaks.narrowPeak -w ${analysis_id}_treat_pileup.bdg"
     }
     """
     macs2 callpeak \\
@@ -312,7 +314,7 @@ process macs {
         -n $analysis_id \\
         -q 0.01 \\
         -B --SPMR
-    $ceas
+    #$ceas
     """
 }
 
@@ -321,7 +323,6 @@ process sicer {
 
     module 'sicer'
     module 'bedtools'
-    module 'ceas'
 
     cpus 2
     memory 8.GB
@@ -329,12 +330,15 @@ process sicer {
    
     publishDir "${params.outdir}/sicer", mode: params.publish_mode
     input:
-    file bam_for_sicer from bam_mkdp_sicer.toSortedList()
-    file bai_for_sicer from bai_mkdp_sicer.toSortedList()
+    file bams from bam_mkdp4sicer.toSortedList()
+    file bais from bai_mkdp4sicer.toSortedList()
     set chip_sample_id, ctrl_sample_id, analysis_id from sicer_in
 
     output :
     file '*.{wig,graph,bed,-summary,-summary-FDR1E-2,pdf,xls,scoreisland}'
+    set "*${chip_sample_id}-W300-G600-FDR1E-2-island.bed", 
+        "*${chip_sample_id}-W300-G600-E100.scoreisland",
+        "*${chip_sample_id}-W300-normalized.wig" into ceas_in_sicer
 
     script:
     SICERDIR="/usr/local/apps/sicer/1.1"
@@ -342,7 +346,7 @@ process sicer {
         """
         bamToBed -i ${chip_sample_id}.mkdp.bam > ${chip_sample_id}.bed
         bash ${SICERDIR}/SICER-rb.sh ./ ${chip_sample_id}.bed ./ ${params.genome} 1 300 300 0.75 600 100
-        ceas -g /fdb/CEAS/${params.genome}.refGene -b ${chip_sample_id}-W300-G600-E100.scoreisland
+        #ceas -g /fdb/CEAS/${params.genome}.refGene -b ${chip_sample_id}-W300-G600-E100.scoreisland
         """
     }
     else {
@@ -350,10 +354,32 @@ process sicer {
         bamToBed -i ${chip_sample_id}.mkdp.bam > ${chip_sample_id}.bed
         bamToBed -i ${ctrl_sample_id}.mkdp.bam > ${ctrl_sample_id}.bed
         bash ${SICERDIR}/SICER.sh ./ ${chip_sample_id}.bed ${ctrl_sample_id}.bed ./ ${params.genome} 1 300 300 0.75 600 1E-2
-        ceas -g /fdb/CEAS/${params.genome}.refGene -b ${chip_sample_id}-W300-G600-FDR1E-2-island.bed -w ${chip_sample_id}-W300-normalized.wig
+        #ceas -g /fdb/CEAS/${params.genome}.refGene -b ${chip_sample_id}-W300-G600-FDR1E-2-island.bed -w ${chip_sample_id}-W300-normalized.wig
         """
     }
 }
+
+process CEAS { tag "$bed"
+    module 'ceas'
+
+    cpus 2
+    memory 8.GB
+    time 4.h
+
+    publishDir "${params.outdir}/memchip", mode: params.publish_mode
+
+    input:
+    set bed from Channel.create() .mix( ceas_in_macs, ceas_in_sicer )
+
+    output:
+    file "*.{xls,pdf}"
+    
+    script:
+    """
+    echo $bed
+    """
+}
+
 
 process memechip { tag "$narrowpeak"
 
