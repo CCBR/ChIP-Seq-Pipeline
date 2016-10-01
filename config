@@ -76,7 +76,7 @@ params {
 
 workflow.onComplete = {
     def subject = 'ChIP-Seq-Pipeline completed'
-    def recipient = "${USER}@nih.gov"
+    def recipient = '${USER}@nih.gov'
 
     ['mail', '-s', subject, recipient].execute() << """
 
