@@ -185,6 +185,7 @@ process phantompeakqualtools {
 
 	module 'samtools'
 	module 'R'
+	errorStrategy 'ignore'
 
 	publishDir "${params.outdir}/phantompeakqualtools", mode: params.publishMode
 
