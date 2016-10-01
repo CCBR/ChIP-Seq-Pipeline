@@ -217,8 +217,8 @@ process deeptools {
 	publishDir "${params.outdir}/deepTools", mode: params.publishMode
 
 	input:
-	file bam_files from bam_mkdp4deeptools.toSortedList()
-	file bai_files from bai_mkdp4deeptools.toSortedList()
+	file bam from bam_mkdp4deeptools.toSortedList()
+	file bai from bai_mkdp4deeptools.toSortedList()
 
 	output:
 	file 'fingerprints.pdf'
