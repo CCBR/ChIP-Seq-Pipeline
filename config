@@ -74,7 +74,7 @@ params {
   }
 }
 
-workflow.onComplete {
+workflow.onComplete = {
     def subject = 'ChIP-Seq-Pipeline completed'
     def recipient = "${USER}@nih.gov"
 
