@@ -77,7 +77,7 @@ params {
 workflow.onComplete = {
     String user= System.getenv( "USER" )
     def subject = 'ChIP-Seq-Pipeline completed'
-    def recipient = "${user}@nih.gov"
+    def recipient = "${user}@helix.nih.gov"
 
     ['mail', '-s', subject, recipient].execute() << """
 
