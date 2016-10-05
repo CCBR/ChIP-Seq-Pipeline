@@ -288,7 +288,6 @@ process macs {
     output:
     file '*.{bed,xls,r,narrowPeak,bdg}'
     file '*.narrowPeak' into memechip_in, homer_in_macs
-    file '*.pdf'
 
     set '*.narrowPeak', '*_treat_pileup.bdg' into ceas_in_macs
 
@@ -372,8 +371,8 @@ process CEAS { tag "$bed"
     input:
     set bed from Channel.create() .mix( ceas_in_macs, ceas_in_sicer )
 
-    output:
-    file "*.{xls,pdf}"
+    //output:
+    //file "*.{xls,pdf}"
     
     script:
     """
