@@ -405,7 +405,7 @@ process memechip { tag "$narrowpeak"
     """
     sort -k6,6g ${narrowpeak} | head -n 1000 > ${sorted_peak}
     bedtools getfasta -fi $genome_fasta -bed $sorted_peak -fo $sorted_fa
-    meme-chip -oc $result_dir -dna -meme-p $cpus $sorted_fa
+    meme-chip -oc $result_dir -dna -meme-p ${process.cpus} $sorted_fa
     tar czf ${result_dir}.tar.gz $result_dir
     """
 }
