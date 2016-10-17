@@ -26,7 +26,7 @@ profiles {
 	  memory = '16 GB'
 	  time = '24h'
 	  queue = "ccr"
-	  scratch = "/lscratch/$SLURM_JOBID"
+	  scratch = '/lscratch/$SLURM_JOBID'
 	  clusterOptions = "--gres=lscratch:500"
 	  
 	}
