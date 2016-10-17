@@ -19,6 +19,19 @@ profiles {
 	}
     }
 
+    standard_ls {
+	process {
+	  executor = 'slurm'
+	  cpus = 4
+	  memory = '16 GB'
+	  time = '24h'
+	  queue = "ccr"
+	  scratch = "/lscratch/$SLURM_JOBID"
+	  clusterOptions = "--gres=lscratch:500"
+	  
+	}
+    }
+    
     local {
         process.executor = 'local'
         process.queueSize = 4
