@@ -11,8 +11,14 @@
 
 2. clone this git repository
 	```bash
+	#for latest experimental features
 	git clone https://github.com/CCBR/ChIP-Seq-Pipeline.git
 	```
+	
+	Otherwise,
+	download from the following link
+	https://github.com/CCBR/ChIP-Seq-Pipeline/releases/latest
+	
 
 ## How to run the pipeline
 
