@@ -15,7 +15,7 @@
 	git clone https://github.com/CCBR/ChIP-Seq-Pipeline.git
 	```
 	
-	Otherwise,
+	For the stable version of the pipeline,
 	download from the following link
 	https://github.com/CCBR/ChIP-Seq-Pipeline/releases/latest
 	
@@ -23,10 +23,10 @@
 ## How to run the pipeline
 
 ```bash
-./nextflow run ChIP-Seq-Pipeline/main.nf \
-	-config ChIP-Seq-Pipeline/config \
-	--macsconfig='examples/macs.config' \
-	--reads='ChIP-Seq-Pipeline/examples/*.fastq' \
+./nextflow run main.nf \
+	-config config \
+	--macsconfig='example/macs.config' \
+	--reads='example/*.fastq' \
 	--genome='hg19'
 ```
 	
